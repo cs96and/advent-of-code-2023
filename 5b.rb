@@ -2,37 +2,45 @@ require 'set'
 
 class RangedHash < Hash
 	alias_method :old_lookup, :[]
+	attr_accessor :name
+
+	def initialize(hash, name)
+		hash.sort.each do |key, value|
+			self[key] = value
+		end
+		@name = name
+	end
 
 	def [](key)
-		self.each do |range, value|
-			if range.include?(key)
-				offset = key - range.first
-				return value.first+offset..value.max
+		self.each do |source, target_range|
+			if key < source
+				return key...source
+			elsif key < source + target_range.size
+				offset = key - source
+				return target_range.first+offset...target_range.max+1
 			end
 		end
-		return nil
+		return key...Float::INFINITY
 	end
 end
 
-seeds = Set.new()
-seed_to_soil = RangedHash.new
-soil_to_fertilizer = RangedHash.new
-fertilizer_to_water = RangedHash.new
-water_to_light = RangedHash.new
-light_to_temperature = RangedHash.new
-temperature_to_humidity = RangedHash.new
-humidity_to_location = RangedHash.new
+seeds = []
+seed_to_soil = {}
+soil_to_fertilizer = {}
+fertilizer_to_water = {}
+water_to_light = {}
+light_to_temperature = {}
+temperature_to_humidity = {}
+humidity_to_location = {}
 current_map = nil
 
-sum = 0
-
-IO.foreach("5-test.txt").each_with_index do |line, index|
+IO.foreach("5.txt").each_with_index do |line, index|
 	line.chomp!
 
 	if line =~ /^seeds:/
 		s = line.split(' ')[1..-1].map { |x| x.to_i }
-		s.each_cons(2) do |seed, length|
-			seeds.add(seed...seed+length)
+		s.each_slice(2) do |seed, length|
+			seeds << (seed...seed+length)
 		end
 	elsif line == "seed-to-soil map:"
 		current_map = seed_to_soil
@@ -50,44 +58,48 @@ IO.foreach("5-test.txt").each_with_index do |line, index|
 		current_map = humidity_to_location
 	elsif 0 != line.length
 		dest, src, count = *line.split(' ').map { |x| x.to_i }
-		current_map[src...src+count] = dest...dest+count
-		current_map = current_map.sort { |a,b| a[0].first <=> b[0].first }.to_h
+		current_map[src] = dest...dest+count
 	end
 end
 
-puts seed_to_soil
+seed_to_soil = RangedHash.new(seed_to_soil, "seed-to-soil")
+soil_to_fertilizer = RangedHash.new(soil_to_fertilizer, "soil-to-fertilizer")
+fertilizer_to_water = RangedHash.new(fertilizer_to_water, "fertilizer-to-water")
+water_to_light = RangedHash.new(water_to_light, "water-to-light")
+light_to_temperature = RangedHash.new(light_to_temperature, "light-to-temperature")
+temperature_to_humidity = RangedHash.new(temperature_to_humidity, "temperature-to-humidity")
+humidity_to_location = RangedHash.new(humidity_to_location, "humidity-to-location")
 
-exit
-
-def do_lookup(map, source_range)
+def source_to_target(map, source_range)
 	result = []
+	range_size_remaining = source_range.size
 	i = source_range.first
-	while i <= source_range.max
-		puts i
+	while range_size > 0
 		target_range = map[i]
-		if target_range.nil?
-			result << i
-			i += 1
-		else
-			result << target_range.first
-			i += target_range.size
+		if target_range.size > range_size_remaining
+			target_range = target_range.first...target_range.first+range_size_remaining
 		end
+		result << target_range
+		i += target_range.size
+		range_size_remaining -= target_range.size
 	end
+	return result
 end
 
-locations = []
-seeds.each do |seed_range|
-	soils = do_lookup(seed_to_soil, seed_range)
-	puts soils
+all_maps = [ seed_to_soil, soil_to_fertilizer, fertilizer_to_water, water_to_light, light_to_temperature, temperature_to_humidity, humidity_to_location ]
 
-	#fert = soil_to_fertilizer[soil]
-	#water = fertilizer_to_water[fert]
-	#light = water_to_light[water]
-	#temp = light_to_temperature[light]
-	#hum = temperature_to_humidity[temp]
-	#loc = humidity_to_location[hum]
-	#puts "Seed #{seed} Location #{loc}"
-	#locations << loc
+source_ranges = seeds
+all_maps.each do |map|
+	#puts "\n#{map.name}:"
+	#puts "Source ranges: #{source_ranges}"
+	target_ranges = []
+	source_ranges.each do |range|
+		target_ranges += source_to_target(map, range)
+	end
+	#puts "Target ranges: #{target_ranges}"
+	source_ranges = target_ranges
 end
+
+locations = source_ranges.map { |r| r.first }
 
 puts "Min location = #{locations.min}"
