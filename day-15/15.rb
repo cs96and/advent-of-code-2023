@@ -1,5 +1,5 @@
 def hash_func(str)
-	str.each_char.reduce(0) { |sum, ch| sum = ((sum + ch.ord) * 17) % 256 }
+	str.each_char.reduce(0) { |sum, ch| ((sum + ch.ord) * 17) % 256 }
 end
 
 steps = IO.foreach("15.txt", ',', chomp:true).map(&:chomp)
