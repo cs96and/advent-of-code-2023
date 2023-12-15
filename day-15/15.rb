@@ -2,15 +2,15 @@ def hash_func(str)
 	str.each_char.reduce(0) { |sum, ch| ((sum + ch.ord) * 17) % 256 }
 end
 
-steps = IO.foreach("15.txt", ',', chomp:true).map(&:chomp)
+steps = File.read("15.txt", chomp:true).split(',')
 
-sum = steps.sum { |step| hash_func(step) }
+sum = steps.sum { hash_func(_1) }
 puts "Part 1: #{sum}"
 
 boxes = []
 steps.each do |step|
 	label, operation, amount = *step.split(/([-=])/)
-	
+
 	hash_value = hash_func(label)
 
 	box = boxes[hash_value]
