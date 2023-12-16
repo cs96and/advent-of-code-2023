@@ -64,15 +64,23 @@ end
 
 def traverse(grid, energy_grid, beam)
 	# Check if beam has left the grid
-	return if beam.y >= grid.size || beam.y < 0 || beam.x >= grid[0].size || beam.x < 0
+	while (beam.y < grid.size && beam.y >= 0 && beam.x < grid[0].size && beam.x >= 0)
+		# Check if we've already been over this square, in this direction
+		return if energy_grid[beam.y][beam.x].include?(beam.direction)
+		energy_grid[beam.y][beam.x] << beam.direction
 
-	# Check if we've already been over this square, in this direction
-	return if energy_grid[beam.y][beam.x].include?(beam.direction)
-	energy_grid[beam.y][beam.x] << beam.direction
-
-	new_beams = beam.reflect(grid[beam.y][beam.x])
-	new_beams.each do
-		traverse(grid, energy_grid, _1.move)
+		case grid[beam.y][beam.x]
+		when '.'
+			beam.move
+		when '\\', '/'
+			beam.reflect(grid[beam.y][beam.x])
+			beam.move
+		else
+			new_beams = beam.reflect(grid[beam.y][beam.x])
+			new_beams.each do
+				traverse(grid, energy_grid, _1.move)
+			end
+		end
 	end
 end
 
