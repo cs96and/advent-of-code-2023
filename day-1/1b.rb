@@ -20,7 +20,7 @@ end
 sum = 0
 regex = /one|two|three|four|five|six|seven|eight|nine|\d/
 
-IO.foreach("1.txt") do |line|
+IO.foreach("../inputs/day-1/1.txt") do |line|
     first = line.index(regex)
     last = line.rindex(regex)
     if !first.nil?

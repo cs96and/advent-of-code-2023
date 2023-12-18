@@ -43,7 +43,7 @@ class SpringRow
 
 end
 
-rows = IO.foreach("12.txt", chomp:true).map { |line| SpringRow.new(line) }
+rows = IO.foreach("../inputs/day-12/12.txt", chomp:true).map { |line| SpringRow.new(line) }
 Ractor.make_shareable(rows)
 
 NUM_RACTORS = 15

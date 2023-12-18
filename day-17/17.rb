@@ -221,7 +221,7 @@ def a_star(grid, start, goal, min_dist, max_dist)
 	raise "No route found"
 end
 
-grid = IO.foreach('17.txt', chomp:true).map{ _1.chars.map(&:to_i) }
+grid = IO.foreach('../inputs/day-17/17.txt', chomp:true).map{ _1.chars.map(&:to_i) }
 puts display_grid(grid)
 
 start_node = [0, 0]

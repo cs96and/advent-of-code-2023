@@ -48,7 +48,7 @@ def output_part(line_no, start_pos, end_pos)
 	puts
 end
 
-IO.foreach("3.txt").each_with_index do |line, index|
+IO.foreach("../inputs/day-3/3.txt").each_with_index do |line, index|
 	$schematic[index] = line.chomp
 end
 

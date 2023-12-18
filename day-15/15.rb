@@ -2,7 +2,7 @@ def hash_func(str)
 	str.each_char.reduce(0) { |sum, ch| ((sum + ch.ord) * 17) % 256 }
 end
 
-steps = File.read("15.txt", chomp:true).split(',')
+steps = File.read("../inputs/day-15/15.txt", chomp:true).split(',')
 
 sum = steps.sum { hash_func(_1) }
 puts "Part 1: #{sum}"

@@ -64,7 +64,7 @@ class Hand
 end
 
 hands = []
-IO.foreach("7.txt").each_with_index do |line, index|
+IO.foreach("../inputs/day-7/7.txt").each_with_index do |line, index|
 	hand, bet = line.chomp.split(' ')
 	hands << [ Hand.new(hand), bet.to_i ]
 end

@@ -63,7 +63,7 @@ def check_around(line_no, pos)
 end
 
 
-IO.foreach("3.txt").each_with_index do |line, index|
+IO.foreach("../inputs/day-3/3.txt").each_with_index do |line, index|
 	$schematic[index] = line.chomp
 end
 

@@ -1,6 +1,6 @@
 #!/bin/env ruby
 
-FILENAME = "18.txt"
+FILENAME = "../inputs/day-18/18.txt"
 DIRECTIONS = ['R', 'D', 'L', 'U']
 
 Instruction = Struct.new('Instruction', :direction, :distance)

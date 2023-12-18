@@ -68,7 +68,7 @@ end
 Instruction = Struct.new('Instruction', :direction, :distance, :rgb)
 
 instructions = []
-IO.foreach("18.txt", chomp:true) do |line|
+IO.foreach("../inputs/day-18/18.txt", chomp:true) do |line|
 	m = line.match(/([LRUD])\s+(\d+)\s+\(#([0-9a-f]{6})\)/)
 	rgb = m[3].scan(/../).map { _1.to_i(16) }
 	instructions << Instruction.new(m[1], m[2].to_i, rgb)

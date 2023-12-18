@@ -3,7 +3,7 @@ GREEN_MAX = 13
 BLUE_MAX = 14
 
 sum = 0
-IO.foreach("2.txt") do |line|
+IO.foreach("../inputs/day-2/2.txt") do |line|
 	m = line.match(/Game\s*(\d+):\s*(.*)/)
 	game_id = m[1].to_i
 	rest = m[2]

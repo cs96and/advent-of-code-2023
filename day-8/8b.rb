@@ -2,7 +2,7 @@ node_map = {}
 
 instructions = nil
 starting_nodes = []
-File.open("8.txt") do |file|
+File.open("../inputs/day-8/8.txt") do |file|
 	# Read first line and convert L => 0, R => 1
 	instructions = file.readline.chomp.each_char.map { |ch| ch == 'L' ? 0 : 1}
 

@@ -98,7 +98,7 @@ def reset_energy(rows, cols)
 	Array.new(rows){ Array.new(cols){ Set.new } }
 end
 
-grid = IO.foreach("16.txt", chomp:true).to_a
+grid = IO.foreach("../inputs/day-16/16.txt", chomp:true).to_a
 energy_grid = reset_energy(grid.size, grid[0].size)
 
 puts grid

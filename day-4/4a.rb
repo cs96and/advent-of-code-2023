@@ -1,7 +1,7 @@
 require 'set'
 
 sum = 0
-IO.foreach("4.txt").each_with_index do |line, index|
+IO.foreach("../inputs/day-4/4.txt").each_with_index do |line, index|
 	card, winners, my_numbers = *line.chomp.split(/[:|]/)
 
 	winners = winners.split(' ').map { |x| x.to_i }.to_set

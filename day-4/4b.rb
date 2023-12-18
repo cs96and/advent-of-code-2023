@@ -4,7 +4,7 @@ cards = {}
 cards.default = 0
 
 card = 0
-IO.foreach("4.txt").each_with_index do |line, index|
+IO.foreach("../inputs/day-4/4.txt").each_with_index do |line, index|
 	card, winners, my_numbers = *line.chomp.split(/[:|]/)
 	card = card.split(' ')[1].to_i
 

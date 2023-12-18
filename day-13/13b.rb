@@ -143,7 +143,7 @@ end
 
 patterns = []
 current_pattern = []
-IO.foreach("13.txt", chomp:true) do |line|
+IO.foreach("../inputs/day-13/13.txt", chomp:true) do |line|
 	if 0 == line.length
 		patterns << current_pattern
 		current_pattern = []

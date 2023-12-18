@@ -18,7 +18,7 @@ class Sequence
 end
 
 part1_sum = part2_sum = 0
-IO.foreach("9.txt", chomp: true).each do |line|
+IO.foreach("../inputs/day-9/9.txt", chomp: true).each do |line|
 	seq = Sequence.new(line)
 	part1_sum += seq.find_next
 	part2_sum += seq.find_prev

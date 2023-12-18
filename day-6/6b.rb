@@ -34,7 +34,7 @@ end
 time = 0
 distance = 0
 
-IO.foreach("6.txt").each_with_index do |line, index|
+IO.foreach("../inputs/day-6/6.txt").each_with_index do |line, index|
 	line.chomp!
 
 	name, numbers = line.split(' ', 2)

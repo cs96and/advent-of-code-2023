@@ -26,7 +26,7 @@ class Point
 	end
 end
 
-galaxy_map = IO.foreach("11.txt", chomp: true).to_a
+galaxy_map = IO.foreach("../inputs/day-11/11.txt", chomp: true).to_a
 
 # Find columns with no galaxies
 $empty_columns = []

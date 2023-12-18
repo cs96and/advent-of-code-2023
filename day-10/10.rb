@@ -208,7 +208,7 @@ class Maze
 	end
 end
 
-maze = Maze.new("10.txt")
+maze = Maze.new("../inputs/day-10/10.txt")
 puts maze.to_s
 loop_length = maze.loop_length
 

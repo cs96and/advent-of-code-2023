@@ -106,7 +106,7 @@ def weigh(field)
 	return sum
 end
 
-field = IO.foreach("14.txt", chomp:true).to_a
+field = IO.foreach("../inputs/day-14/14.txt", chomp:true).to_a
 
 puts "Part 1: #{weigh(tilt_field_north(field.dup))}\n"
 

@@ -26,7 +26,7 @@ current_map = nil
 
 sum = 0
 
-IO.foreach("5.txt").each_with_index do |line, index|
+IO.foreach("../inputs/day-5/5.txt").each_with_index do |line, index|
 	line.chomp!
 
 	if line =~ /^seeds:/

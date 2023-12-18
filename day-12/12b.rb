@@ -49,7 +49,7 @@ class SpringRow
 end
 
 [1,5].each_with_index do |expand, part|
-	rows = IO.foreach("12.txt", chomp:true).map { |line| SpringRow.new(line, expand) }
+	rows = IO.foreach("../inputs/day-12/12.txt", chomp:true).map { |line| SpringRow.new(line, expand) }
 	sum = rows.sum(&:count_permutations)
 	puts "Part #{part+1}: #{sum}"
 end
