@@ -1,145 +1,58 @@
 #!/bin/env ruby
 
-class String
-	def colourize(rgb)
-		"\e[38;2;#{rgb[0]};#{rgb[1]};#{rgb[2]}m#{self}\e[0m"
-	end
-end
-
-def is_trench?(ch)
-	case ch
-	when '.', 'x', ' '
-		return false
-	else
-		return true
-	end
-end
-
-def is_corner?(grid, y, x)
-	if 0 != y && is_trench?(grid[y-1][x])
-		if 0 != x && is_trench?(grid[y][x-1])
-			return 'J'
-		elsif grid[y].length - 1 != x && is_trench?([y][x+1])
-			return 'L'
-		end
-	elsif grid.length - 1 != y && is_trench?(grid[y+1][x])
-		if 0 != x && is_trench?(grid[y][x-1])
-			return '7'
-		elsif grid[y].length - 1 != x && is_trench?(grid[y][x+1])
-			return 'F'
-		end
-	end
-	return nil
-end
-
-def count_inner(grid)
-	# Scan diagonally
-	count = 0
-	grid.each_index do |start_y|
-		row = grid[start_y]
-		start_x = 0 == start_y ? 0 : grid[start_y].length - 1
-		(start_x...grid[start_y].length).each do |x|
-			inside = false
-			y = start_y
-			while (y < grid.length && x >= 0)
-				puts "[#{y},#{x}]"
-				case grid[y][x]
-				when '.'
-					if inside
-						count += 1 if 
-						grid[y][x] = 'x'
-					else
-						grid[y][x] = ' '
-					end
-				else
-					count += 1
-					# if this not a corner, or is an L or 7 corner, then we will swap inside/outside
-					case is_corner?(grid, y, x)
-					when 'L', '7', nil
-						inside = !inside
-					end
-				end
-				y += 1; x -= 1
-			end
-		end
-	end
-	return count
-end
-
-Instruction = Struct.new('Instruction', :direction, :distance)
-
+FILENAME = "18.txt"
 DIRECTIONS = ['R', 'D', 'L', 'U']
 
-instructions = []
-IO.foreach("18-test.txt", chomp:true) do |line|
-	m = line.match(/.*\(#(\w{5})(\w)\)/)
-	instructions << Instruction.new(DIRECTIONS[m[2].to_i], m[1].to_i(16))
-end
+Instruction = Struct.new('Instruction', :direction, :distance)
+Vertex = Struct.new('Vertex', :x, :y)
 
-puts instructions
-
-# Pre-parse the instructions to calculate the needed grid size and starting point
-y = x = min_y = min_x = max_y = max_x = 0
-instructions.each do |inst|
-	case inst.direction
-	when 'D'
-		y += inst.distance
-		min_y = [y, min_y].min
-		max_y = [y, max_y].max
-	when 'U'
-		y -= inst.distance
-		min_y = [y, min_y].min
-		max_y = [y, max_y].max
-	when 'R'
-		x += inst.distance
-		min_x = [x, min_x].min
-		max_x = [x, max_x].max
-	when 'L'
-		x -= inst.distance
-		min_x = [x, min_x].min
-		max_x = [x, max_x].max
+def read_part1
+	IO.foreach(FILENAME, chomp:true).map do |line|
+		m = line.match(/([LRUD])\s+(\d+)\s+\(#(\w{6})\)/)
+		Instruction.new(m[1], m[2].to_i)
 	end
 end
 
-puts min_y, max_y, min_x, max_x
-puts "Grid size: [#{(max_y - min_y) + 1}, #{(max_x - min_x) + 1}]"
-exit
-
-grid = Array.new((max_y - min_y) + 1) { Array.new((max_x - min_x) + 1, '.') }
-
-y = min_y.abs
-x = min_x.abs
-grid[y][x] = '?'
-
-instructions.each do |inst|
-	case inst.direction
-	when 'D'
-		for i in (1..inst.distance)
-			grid[y+i][x] = '#'.colourize(inst.rgb)
-		end
-		y += inst.distance
-	when 'R'
-		for i in (1..inst.distance)
-			grid[y][x+i] = '#'.colourize(inst.rgb)
-		end
-		x += inst.distance
-	when 'U'
-		for i in (1..inst.distance)
-			grid[y-i][x] = '#'.colourize(inst.rgb)
-		end
-		y -= inst.distance
-	when 'L'
-		for i in (1..inst.distance)
-			grid[y][x-i] = '#'.colourize(inst.rgb)
-		end
-		x -= inst.distance
+def read_part2
+	instructions = []
+	IO.foreach(FILENAME, chomp:true).map do |line|
+		m = line.match(/.*\(#(\w{5})(\w)\)/)
+		Instruction.new(DIRECTIONS[m[2].to_i], m[1].to_i(16))
 	end
 end
 
-puts grid.map.with_index { |ch,i| i.to_s.rjust(3) + ' ' + ch.join }
-puts 
-count = count_inner(grid)
+def get_vertices(instructions)
+	vertices = [ Vertex.new(0, 0) ]
 
-puts grid.map.with_index { |ch,i| i.to_s.rjust(3) + ' ' + ch.join }
+	circumference = 0
+	instructions.each_with_index do |inst, i|
+		circumference += inst.distance
+		v = vertices[i].dup
+		case inst.direction
+		when 'D' then v.y += inst.distance
+		when 'R' then v.x += inst.distance
+		when 'U' then v.y -= inst.distance
+		when 'L' then v.x -= inst.distance
+		end
+		vertices << v
+	end
 
-puts "Part 1: #{count}"
+	return vertices, circumference
+end
+
+def calculate_area(instructions)
+	vertices, circumference = get_vertices(instructions)
+
+	# https://en.wikipedia.org/wiki/Shoelace_formula
+	area = vertices.each_cons(2).sum do |(v0, v1)|
+		#(v0.x * v1.y) - (v0.y * v1.x) # Triangle formula
+		(v0.y + v1.y) * (v0.x - v1.x) # Trapezoid formula
+	end
+	return (area / 2) + (circumference / 2) + 1
+end
+
+area1 = calculate_area(read_part1)
+area2 = calculate_area(read_part2)
+
+puts "Part 1: #{area1}"
+puts "Part 2: #{area2}"

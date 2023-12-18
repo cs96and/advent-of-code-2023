@@ -42,7 +42,6 @@ def count_inner(grid)
 			inside = false
 			y = start_y
 			while (y < grid.length && x >= 0)
-				puts "[#{y},#{x}]"
 				case grid[y][x]
 				when '.'
 					if inside
