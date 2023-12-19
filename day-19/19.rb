@@ -37,14 +37,6 @@ Instruction = Struct.new('Instruction', :category, :op, :value, :dest) do
 			return "#{category}#{op}#{value}#{dest_str}"
 		end
 	end
-
-	def hash
-		[category, op, value].hash
-	end
-
-	def eql?(rhs)
-		[category, op, value] == [rhs.category, rhs.op, rhs,value]
-	end
 end
 
 def accept_part?(part, workflows)
@@ -71,19 +63,13 @@ def do_workflow(part, workflow)
 	raise "No matching instruction in workflow"
 end
 
-def find_accept_paths(workflows, name='in', current_path=[], accept_paths=[], range_map=nil, depth=0)
-	workflow = workflows[name]
-	return 0 if workflow.nil?
-
+def find_accept_paths(workflows, name='in', range_map=nil, depth=0)
 	puts "#{'  '*depth}** #{name} **"
-
-	if name=="rfg2"
-		nothing = 0 
-	end
 
 	range_map = { x: (1..4000), m: (1..4000), a: (1..4000), s: (1..4000) } if range_map.nil?
 
 	count = 0
+	workflow = workflows[name]
 	workflow.each do |instruction|
 		prev_range = range_map[instruction.category]
 		if !instruction.category.nil?
@@ -95,19 +81,17 @@ def find_accept_paths(workflows, name='in', current_path=[], accept_paths=[], ra
 			end
 		end
 
-		if ('A' == instruction.dest)
-			# found an accept path
-			complete_path = current_path.dup << instruction
-			accept_paths << complete_path
-
+		case instruction.dest
+		when 'A'
+			# Found an accept path
 			path_sum = sum_range_map(range_map)
 			count += path_sum
 
-			puts "#{'  '*(depth+1)}Found accept, path: #{complete_path.map(&:to_s).join(' | ')}"
 			puts "#{'  '*(depth+1)}#{range_map} => #{path_sum}".green
+		when 'R'
+			# Reject - do nothing
 		else
-			res = find_accept_paths(workflows, instruction.dest, current_path.dup << instruction, accept_paths, range_map.dup, depth+1)
-			count += res[1]
+			count += find_accept_paths(workflows, instruction.dest, range_map.dup, depth+1)
 		end
 
 		inv = instruction.invert
@@ -119,19 +103,17 @@ def find_accept_paths(workflows, name='in', current_path=[], accept_paths=[], ra
 				range_map[inv.category] = ([prev_range.min,inv.value].max..prev_range.max)
 			end
 		end
-
-		current_path << inv
 	end
-	return accept_paths, count
+	return count
 end
 
 def sum_range_map(range_map)
 	range_map.values.reduce(1) { |sum, range| sum *= range.count }
 end
 
+# Parse input file
 workflows = {}
 parts = []
-
 is_workflow = true
 IO.foreach('../inputs/day-19/19.txt', chomp:true) do |line|
 	if line.empty?
@@ -159,16 +141,11 @@ end
 #workflows.each { |k,v| puts "#{k} => #{v}" }
 #parts.each { puts _1 }
 
-sum = parts.sum do |part|
+part1 = parts.sum do |part|
 	accept_part?(part, workflows) ? part.value : 0
 end
 
-puts "Part 1: #{sum}"
+combinations = find_accept_paths(workflows)
 
-paths, combinations = find_accept_paths(workflows)
-
-#paths.each do |path|
-#	puts path.map { _1.to_s }.join(' | ')
-#end
-
-puts "Found #{paths.size} accept paths, combinations: #{combinations}"
+puts "Part 1: #{part1}"
+puts "Part 2: #{combinations}"
