@@ -1,3 +1,16 @@
+#!/bin/env ruby
+
+class String
+	# colorization
+	def colorize(color_code)
+	  "\e[#{color_code}m#{self}\e[0m"
+	end
+  
+	def green
+		colorize(32)
+	end
+end
+
 Part = Struct.new('Part', :x, :m, :a, :s) do
 	def value
 		return x + m + a + s
@@ -9,6 +22,28 @@ Instruction = Struct.new('Instruction', :category, :op, :value, :dest) do
 		return dest if category.nil?
 		return dest if part[category].send(op, value)
 		return nil
+	end
+
+	def invert
+		new_op = (op == :<) ? :>= : :<=
+		Instruction.new(self.category, new_op, self.value, "")
+	end
+
+	def to_s
+		if category.nil?
+			return "#{dest}"
+		else
+			dest_str = dest.empty? ? "" : " -> #{dest}"
+			return "#{category}#{op}#{value}#{dest_str}"
+		end
+	end
+
+	def hash
+		[category, op, value].hash
+	end
+
+	def eql?(rhs)
+		[category, op, value] == [rhs.category, rhs.op, rhs,value]
 	end
 end
 
@@ -36,6 +71,63 @@ def do_workflow(part, workflow)
 	raise "No matching instruction in workflow"
 end
 
+def find_accept_paths(workflows, name='in', current_path=[], accept_paths=[], range_map=nil, depth=0)
+	workflow = workflows[name]
+	return 0 if workflow.nil?
+
+	puts "#{'  '*depth}** #{name} **"
+
+	if name=="rfg2"
+		nothing = 0 
+	end
+
+	range_map = { x: (1..4000), m: (1..4000), a: (1..4000), s: (1..4000) } if range_map.nil?
+
+	count = 0
+	workflow.each do |instruction|
+		prev_range = range_map[instruction.category]
+		if !instruction.category.nil?
+			case instruction.op
+			when :<
+				range_map[instruction.category] = (prev_range.min..[prev_range.max,instruction.value-1].min)
+			when :>
+				range_map[instruction.category] = ([prev_range.min,instruction.value+1].max..prev_range.max)
+			end
+		end
+
+		if ('A' == instruction.dest)
+			# found an accept path
+			complete_path = current_path.dup << instruction
+			accept_paths << complete_path
+
+			path_sum = sum_range_map(range_map)
+			count += path_sum
+
+			puts "#{'  '*(depth+1)}Found accept, path: #{complete_path.map(&:to_s).join(' | ')}"
+			puts "#{'  '*(depth+1)}#{range_map} => #{path_sum}".green
+		else
+			res = find_accept_paths(workflows, instruction.dest, current_path.dup << instruction, accept_paths, range_map.dup, depth+1)
+			count += res[1]
+		end
+
+		inv = instruction.invert
+		if !inv.category.nil?
+			case inv.op
+			when :<=
+				range_map[inv.category] = (prev_range.min..[prev_range.max,inv.value].min)
+			when :>=
+				range_map[inv.category] = ([prev_range.min,inv.value].max..prev_range.max)
+			end
+		end
+
+		current_path << inv
+	end
+	return accept_paths, count
+end
+
+def sum_range_map(range_map)
+	range_map.values.reduce(1) { |sum, range| sum *= range.count }
+end
 
 workflows = {}
 parts = []
@@ -64,12 +156,19 @@ IO.foreach('../inputs/day-19/19.txt', chomp:true) do |line|
 	end
 end
 
-workflows.each { |k,v| puts "#{k} => #{v}" }
-parts.each { puts _1 }
+#workflows.each { |k,v| puts "#{k} => #{v}" }
+#parts.each { puts _1 }
 
-sum = 0
-parts.each do |part|
-	sum += part.value if accept_part?(part, workflows)
+sum = parts.sum do |part|
+	accept_part?(part, workflows) ? part.value : 0
 end
 
-puts sum
+puts "Part 1: #{sum}"
+
+paths, combinations = find_accept_paths(workflows)
+
+#paths.each do |path|
+#	puts path.map { _1.to_s }.join(' | ')
+#end
+
+puts "Found #{paths.size} accept paths, combinations: #{combinations}"
